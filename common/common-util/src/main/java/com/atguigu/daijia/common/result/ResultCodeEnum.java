@@ -42,6 +42,7 @@ public enum ResultCodeEnum {
     AUTH_ERROR( 217, "认证通过后才可以开启代驾服务"),
     FACE_ERROR( 250, "当日未进行人脸识别"),
     FAIL_AUTH(404,"登录失败，无效token"),
+    EXPIRE(405,"token已经过期"),
 
     COUPON_EXPIRE( 250, "优惠券已过期"),
     COUPON_LESS( 250, "优惠券库存不足"),

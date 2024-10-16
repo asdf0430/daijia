@@ -9,6 +9,7 @@ import com.atguigu.daijia.model.form.driver.DriverFaceModelForm;
 import com.atguigu.daijia.model.form.driver.UpdateDriverAuthInfoForm;
 import com.atguigu.daijia.model.vo.driver.DriverAuthInfoVo;
 import com.atguigu.daijia.model.vo.driver.DriverLoginVo;
+import com.atguigu.daijia.model.vo.order.CurrentOrderInfoVo;
 import com.atguigu.daijia.model.vo.order.NewOrderDataVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -32,6 +33,8 @@ public class DriverController {
 	private DriverService driverService;
 	@Autowired
 	private DriverInfoFeignClient driverInfoFeignClient;
+
+
 
 	@Operation(summary = "小程序授权登录")
 	@GetMapping("/login/{code}")
@@ -77,5 +80,36 @@ public class DriverController {
 	}
 
 
+	@Operation(summary = "判断司机当日是否进行过人脸识别")
+	@LoginAno
+	@GetMapping("/isFaceRecognition")
+	Result<Boolean> isFaceRecognition() {
+		Long driverId = AuthContextHolder.getUserId();
+		return Result.ok(driverService.isFaceRecognition(driverId));
+	}
+
+	@Operation(summary = "验证司机人脸")
+	@LoginAno
+	@PostMapping("/verifyDriverFace")
+	public Result<Boolean> verifyDriverFace(@RequestBody DriverFaceModelForm driverFaceModelForm) {
+		driverFaceModelForm.setDriverId(AuthContextHolder.getUserId());
+		return Result.ok(driverService.verifyDriverFace(driverFaceModelForm));
+	}
+
+	@Operation(summary = "开始接单服务")
+	@LoginAno
+	@GetMapping("/startService")
+	public Result<Boolean> startService() {
+		Long driverId = AuthContextHolder.getUserId();
+		return Result.ok(driverService.startService(driverId));
+	}
+
+	@Operation(summary = "停止接单服务")
+	@LoginAno
+	@GetMapping("/stopService")
+	public Result<Boolean> stopService() {
+		Long driverId = AuthContextHolder.getUserId();
+		return Result.ok(driverService.stopService(driverId));
+	}
 
 }

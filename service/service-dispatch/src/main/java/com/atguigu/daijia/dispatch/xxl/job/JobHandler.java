@@ -1,10 +1,4 @@
-package com.atguigu.daijia.dispatch.xxl.job;/*
- *@title JobHandler
- *@description
- *@author zm
- *@version 1.0
- *@create 2024/10/15 上午10:53
- */
+package com.atguigu.daijia.dispatch.xxl.job;
 
 import com.atguigu.daijia.dispatch.mapper.XxlJobLogMapper;
 import com.atguigu.daijia.dispatch.service.NewOrderService;

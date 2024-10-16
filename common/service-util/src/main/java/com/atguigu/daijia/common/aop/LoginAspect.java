@@ -51,7 +51,7 @@ public class LoginAspect {
 
 		//查询对应useId，放入ThreadLocal
 		if(StringUtils.isBlank(userId)){
-			throw new MyException(ResultCodeEnum.DATA_ERROR);
+			throw new MyException(ResultCodeEnum.EXPIRE);
 		}
 		AuthContextHolder.setUserId(Long.valueOf(userId));
 		//执行业务方法
