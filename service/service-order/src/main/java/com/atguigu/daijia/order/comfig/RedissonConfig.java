@@ -1,4 +1,4 @@
-package com.atguigu.daijia.common.config.redis;
+package com.atguigu.daijia.order.comfig;
 
 import lombok.Data;
 import org.redisson.Redisson;
@@ -10,9 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
-/**
- * @author zm
- */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "spring.data.redis")

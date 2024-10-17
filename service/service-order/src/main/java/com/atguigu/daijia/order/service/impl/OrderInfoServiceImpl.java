@@ -1,6 +1,5 @@
 package com.atguigu.daijia.order.service.impl;
 
-import com.atguigu.daijia.common.config.redis.RedissonConfig;
 import com.atguigu.daijia.common.constant.RedisConstant;
 import com.atguigu.daijia.common.execption.MyException;
 import com.atguigu.daijia.common.result.ResultCodeEnum;
@@ -8,6 +7,7 @@ import com.atguigu.daijia.model.entity.order.OrderInfo;
 import com.atguigu.daijia.model.entity.order.OrderStatusLog;
 import com.atguigu.daijia.model.enums.OrderStatus;
 import com.atguigu.daijia.model.form.order.OrderInfoForm;
+import com.atguigu.daijia.model.form.order.UpdateOrderCartForm;
 import com.atguigu.daijia.model.vo.order.CurrentOrderInfoVo;
 import com.atguigu.daijia.order.mapper.OrderInfoMapper;
 import com.atguigu.daijia.order.mapper.OrderStatusLogMapper;
@@ -63,7 +63,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
 		// 向redis添加标识
 		// 接单标识，标识不存在了说明不在等待接单状态了
-		redisTemplate.opsForValue().set(RedisConstant.ORDER_ACCEPT_MARK + orderNo,
+		redisTemplate.opsForValue().set(RedisConstant.ORDER_ACCEPT_MARK,
 				"0", RedisConstant.ORDER_ACCEPT_MARK_EXPIRES_TIME, TimeUnit.MINUTES);
 		return orderInfo.getId();
 	}
@@ -172,6 +172,85 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 		return true;
 	}
 
+	//乘客端查找当前订单
+	@Override
+	public CurrentOrderInfoVo searchCustomerCurrentOrder(Long customerId) {
+		//封装条件
+		//乘客id
+		LambdaQueryWrapper<OrderInfo> wrapper = new LambdaQueryWrapper<>();
+		wrapper.eq(OrderInfo::getCustomerId,customerId);
+
+		//各种状态
+		Integer[] statusArray = {
+				OrderStatus.ACCEPTED.getStatus(),
+				OrderStatus.DRIVER_ARRIVED.getStatus(),
+				OrderStatus.UPDATE_CART_INFO.getStatus(),
+				OrderStatus.START_SERVICE.getStatus(),
+				OrderStatus.END_SERVICE.getStatus(),
+				OrderStatus.UNPAID.getStatus()
+		};
+		wrapper.in(OrderInfo::getStatus,statusArray);
+
+		//获取最新一条记录
+		wrapper.orderByDesc(OrderInfo::getId);
+		wrapper.last(" limit 1");
+
+		//调用方法
+		OrderInfo orderInfo = orderInfoMapper.selectOne(wrapper);
+
+		//封装到CurrentOrderInfoVo
+		CurrentOrderInfoVo currentOrderInfoVo = new CurrentOrderInfoVo();
+		if(orderInfo != null) {
+			currentOrderInfoVo.setOrderId(orderInfo.getId());
+			currentOrderInfoVo.setStatus(orderInfo.getStatus());
+			currentOrderInfoVo.setIsHasCurrentOrder(true);
+		} else {
+			currentOrderInfoVo.setIsHasCurrentOrder(false);
+		}
+		return currentOrderInfoVo;
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	@Override
+	public Boolean driverArriveStartLocation(Long orderId, Long driverId) {
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		queryWrapper.eq(OrderInfo::getId, orderId);
+		queryWrapper.eq(OrderInfo::getDriverId, driverId);
+
+		OrderInfo updateOrderInfo = new OrderInfo();
+		updateOrderInfo.setStatus(OrderStatus.DRIVER_ARRIVED.getStatus());
+		updateOrderInfo.setArriveTime(new Date());
+		//只能更新自己的订单
+		int row = orderInfoMapper.update(updateOrderInfo, queryWrapper);
+		if(row == 1) {
+			//记录日志
+			this.log(orderId, OrderStatus.DRIVER_ARRIVED.getStatus());
+		} else {
+			throw new MyException(ResultCodeEnum.UPDATE_ERROR);
+		}
+		return true;
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	@Override
+	public Boolean updateOrderCart(UpdateOrderCartForm updateOrderCartForm) {
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		queryWrapper.eq(OrderInfo::getId, updateOrderCartForm.getOrderId());
+		queryWrapper.eq(OrderInfo::getDriverId, updateOrderCartForm.getDriverId());
+
+		OrderInfo updateOrderInfo = new OrderInfo();
+		BeanUtils.copyProperties(updateOrderCartForm, updateOrderInfo);
+		updateOrderInfo.setStatus(OrderStatus.UPDATE_CART_INFO.getStatus());
+		//只能更新自己的订单
+		int row = orderInfoMapper.update(updateOrderInfo, queryWrapper);
+		if(row == 1) {
+			//记录日志
+			this.log(updateOrderCartForm.getOrderId(), OrderStatus.UPDATE_CART_INFO.getStatus());
+		} else {
+			throw new MyException(ResultCodeEnum.UPDATE_ERROR);
+		}
+		return true;
+	}
 
 	public void log(Long orderId, Integer status) {
 		OrderStatusLog orderStatusLog = new OrderStatusLog();

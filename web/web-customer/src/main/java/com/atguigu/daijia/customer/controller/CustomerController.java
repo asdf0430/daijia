@@ -13,6 +13,8 @@ import com.atguigu.daijia.model.form.customer.ExpectOrderForm;
 import com.atguigu.daijia.model.form.customer.UpdateWxPhoneForm;
 import com.atguigu.daijia.model.vo.customer.CustomerLoginVo;
 import com.atguigu.daijia.model.vo.customer.ExpectOrderVo;
+import com.atguigu.daijia.model.vo.driver.DriverInfoVo;
+import com.atguigu.daijia.model.vo.map.OrderLocationVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -64,6 +66,13 @@ public class CustomerController {
 		return Result.ok(customerService.updateWxPhoneNumber(updateWxPhoneForm));
 	}
 
+	@Operation(summary = "根据订单id获取司机基本信息")
+	@LoginAno
+	@GetMapping("/getDriverInfo/{orderId}")
+	public Result<DriverInfoVo> getDriverInfo(@PathVariable Long orderId) {
+		Long customerId = AuthContextHolder.getUserId();
+		return Result.ok(orderService.getDriverInfo(orderId, customerId));
+	}
 
 
 }
