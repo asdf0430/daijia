@@ -1,6 +1,9 @@
 package com.atguigu.daijia.driver.service.impl;
 
+import com.atguigu.daijia.common.execption.MyException;
+import com.atguigu.daijia.common.result.ResultCodeEnum;
 import com.atguigu.daijia.driver.config.TencentCloudProperties;
+import com.atguigu.daijia.driver.service.CiService;
 import com.atguigu.daijia.driver.service.CosService;
 import com.atguigu.daijia.model.vo.driver.CosUploadVo;
 import com.qcloud.cos.COSClient;
@@ -14,6 +17,7 @@ import com.qcloud.cos.region.Region;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,10 +35,14 @@ public class CosServiceImpl implements CosService {
 	@Resource
 	private TencentCloudProperties tencentCloudProperties;
 
+	@Autowired
+	private COSClient cosClient;
+
+	@Autowired
+	private CiService ciService;
 
 	@Override
 	public CosUploadVo upLoad(MultipartFile file, String path) {
-		COSClient cosClient = getCosClient();
 
 		//文件上传
 		//元数据信息
@@ -62,6 +70,11 @@ public class CosServiceImpl implements CosService {
 		putObjectRequest.setStorageClass(StorageClass.Standard);
 		PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest); //上传文件
 		cosClient.shutdown();
+		Boolean aBoolean = ciService.imageAuditing(uploadPath);
+		if (Boolean.FALSE.equals(aBoolean)) {
+			cosClient.deleteObject(tencentCloudProperties.getBucketPrivate(), uploadPath);
+			throw new MyException(ResultCodeEnum.IMAGE_AUDITION_FAIL);
+		}
 		//返回vo对象
 		CosUploadVo cosUploadVo = new CosUploadVo();
 		cosUploadVo.setUrl(uploadPath);
@@ -71,20 +84,6 @@ public class CosServiceImpl implements CosService {
 
 	}
 
-	private COSClient getCosClient() {
-		// 1 初始化用户身份信息（secretId, secretKey）。
-		String secretId = tencentCloudProperties.getSecretId();
-		String secretKey = tencentCloudProperties.getSecretKey();
-		COSCredentials cred = new BasicCOSCredentials(secretId, secretKey);
-		// 2 设置 bucket 的地域, COS 地域
-		Region region = new Region(tencentCloudProperties.getRegion());
-		ClientConfig clientConfig = new ClientConfig(region);
-		// 这里建议设置使用 https 协议
-		clientConfig.setHttpProtocol(HttpProtocol.https);
-		// 3 生成 cos 客户端。
-		COSClient cosClient = new COSClient(cred, clientConfig);
-		return cosClient;
-	}
 
 	//获取临时签名URL
 	@Override
@@ -92,8 +91,6 @@ public class CosServiceImpl implements CosService {
 		if(!StringUtils.hasText(path)) {
 			return "";
 		}
-		//获取cosclient对象
-		COSClient cosClient = getCosClient();
 		//GeneratePresignedUrlRequest
 		GeneratePresignedUrlRequest request =
 				new GeneratePresignedUrlRequest(tencentCloudProperties.getBucketPrivate(),

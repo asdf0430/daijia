@@ -1,6 +1,7 @@
 package com.atguigu.daijia.model.entity.order;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -8,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @Schema(description = "OrderMonitorRecord")
 @Document("order_monitor_record")
+@Builder
 public class OrderMonitorRecord  {
 
 	@Schema(description = "id")
