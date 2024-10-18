@@ -7,6 +7,7 @@ import com.atguigu.daijia.model.entity.order.OrderInfo;
 import com.atguigu.daijia.model.entity.order.OrderStatusLog;
 import com.atguigu.daijia.model.enums.OrderStatus;
 import com.atguigu.daijia.model.form.order.OrderInfoForm;
+import com.atguigu.daijia.model.form.order.StartDriveForm;
 import com.atguigu.daijia.model.form.order.UpdateOrderCartForm;
 import com.atguigu.daijia.model.vo.order.CurrentOrderInfoVo;
 import com.atguigu.daijia.order.mapper.OrderInfoMapper;
@@ -18,6 +19,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
 	@Autowired
 	private RedissonClient redissonClient;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
 
 	// 乘客下单
 	@Override
@@ -251,6 +256,26 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 		}
 		return true;
 	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public Boolean startDrive(StartDriveForm startDriveForm) {
+		LambdaQueryWrapper<OrderInfo> queryWrapper = new LambdaQueryWrapper<>();
+		queryWrapper.eq(OrderInfo::getOrderNo, startDriveForm.getOrderId());
+		queryWrapper.eq(OrderInfo::getDriverId, startDriveForm.getDriverId());
+		OrderInfo orderInfo = new OrderInfo();
+		orderInfo.setStatus(OrderStatus.START_SERVICE.getStatus());
+		orderInfo.setStartServiceTime(new Date());
+		int row = orderInfoMapper.update(orderInfo, queryWrapper);
+		if(row == 1) {
+			//记录日志
+			this.log(startDriveForm.getOrderId(), OrderStatus.START_SERVICE.getStatus());
+		} else {
+			throw new MyException(ResultCodeEnum.UPDATE_ERROR);
+		}
+		return true;
+	}
+
 
 	public void log(Long orderId, Integer status) {
 		OrderStatusLog orderStatusLog = new OrderStatusLog();
