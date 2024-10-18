@@ -1,7 +1,9 @@
 package com.atguigu.daijia.driver.controller;
 
+import com.atguigu.daijia.common.annotation.LoginAno;
 import com.atguigu.daijia.common.result.Result;
 import com.atguigu.daijia.driver.service.CosService;
+import com.atguigu.daijia.driver.service.FileService;
 import com.atguigu.daijia.model.vo.driver.CosUploadVo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,15 +19,18 @@ public class FileController {
 	@Autowired
 	private CosService cosService;
 
+	@Autowired
+	private FileService fileService;
+
 	//文件上传接口
 	@Operation(summary = "上传")
-	//@GuiguLogin
+	//@LoginAno
 	@PostMapping("/upload")
-	public Result<String> upload(@RequestPart("file") MultipartFile file,
-	                                  @RequestParam(name = "path",defaultValue = "auth") String path) {
-		CosUploadVo cosUploadVo = cosService.uploadFile(file,path);
-		String showUrl = cosUploadVo.getShowUrl();
-		return Result.ok(showUrl);
+	public Result<String> upload(@RequestPart("file") MultipartFile file) {
+		String url=fileService.upload(file);
+		return Result.ok(url);
 	}
+
+
 
 }
