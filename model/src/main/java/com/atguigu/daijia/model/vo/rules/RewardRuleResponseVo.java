@@ -1,11 +1,13 @@
 package com.atguigu.daijia.model.vo.rules;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 
 @Data
+@Builder
 public class RewardRuleResponseVo {
 
     @Schema(description = "奖励规则ID")

@@ -3,6 +3,7 @@ package com.atguigu.daijia.map.service.impl;
 import com.atguigu.daijia.common.constant.RedisConstant;
 import com.atguigu.daijia.common.constant.SystemConstant;
 import com.atguigu.daijia.common.result.Result;
+import com.atguigu.daijia.common.util.LocationUtil;
 import com.atguigu.daijia.driver.client.DriverInfoFeignClient;
 import com.atguigu.daijia.map.repository.OrderServiceLocationRepository;
 import com.atguigu.daijia.map.service.LocationService;
@@ -171,4 +172,34 @@ public class LocationServiceImpl implements LocationService {
 		BeanUtils.copyProperties(orderServiceLocation, orderServiceLastLocationVo);
 		return orderServiceLastLocationVo;
 	}
+
+	@Override
+	public 	BigDecimal calculateOrderRealDistance(Long orderId){
+		Query query=new Query();
+		Criteria criteria=Criteria.where("orderId").is(orderId);
+		query.addCriteria(criteria);
+		query.with(Sort.by(Sort.Order.desc("createTime")));
+		List<OrderServiceLocation> list = mongoTemplate.find(query, OrderServiceLocation.class);
+		//2 第一步查询返回订单位置信息list集合
+		//把list集合遍历，得到每个位置信息，计算两个位置距离
+		//把计算所有距离相加操作
+		double realDistance = 0;
+		if(!CollectionUtils.isEmpty(list)) {
+			for (int i = 0,size = list.size()-1; i < size; i++) {
+				OrderServiceLocation location1 = list.get(i);
+				OrderServiceLocation location2 = list.get(i + 1);
+
+				//计算位置距离
+				double distance = LocationUtil.getDistance(location1.getLatitude().doubleValue(),
+						location1.getLongitude().doubleValue(),
+						location2.getLatitude().doubleValue(),
+						location2.getLongitude().doubleValue());
+
+				realDistance += distance;
+			}
+		}
+		//3 返回最终计算实际距离
+		return new BigDecimal(realDistance);
+	}
+
 }

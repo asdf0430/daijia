@@ -3,6 +3,8 @@ package com.atguigu.daijia.customer.service;
 import com.atguigu.daijia.model.form.customer.ExpectOrderForm;
 import com.atguigu.daijia.model.form.customer.SubmitOrderForm;
 import com.atguigu.daijia.model.form.map.CalculateDrivingLineForm;
+import com.atguigu.daijia.model.form.order.OrderFeeForm;
+import com.atguigu.daijia.model.vo.base.PageVo;
 import com.atguigu.daijia.model.vo.customer.ExpectOrderVo;
 import com.atguigu.daijia.model.vo.driver.DriverInfoVo;
 import com.atguigu.daijia.model.vo.map.DrivingLineVo;
@@ -30,4 +32,10 @@ public interface OrderService {
 	DrivingLineVo calculateDrivingLine(CalculateDrivingLineForm calculateDrivingLineForm);
 
 	OrderServiceLastLocationVo getOrderServiceLastLocation(Long orderId);
+
+	Boolean endDrive(OrderFeeForm orderFeeForm);
+
+	Boolean driverArriveStartLocation(Long orderId, Long driverId);
+
+	PageVo findCustomerOrderPage(Long customerId, Long page, Long limit);
 }

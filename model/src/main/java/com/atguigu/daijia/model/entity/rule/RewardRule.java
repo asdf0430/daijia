@@ -4,11 +4,13 @@ import com.atguigu.daijia.model.entity.base.BaseEntity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Schema(description = "RewardRule")
 @TableName("reward_rule")
+@Builder
 public class RewardRule extends BaseEntity {
 
 	private static final long serialVersionUID = 1L;

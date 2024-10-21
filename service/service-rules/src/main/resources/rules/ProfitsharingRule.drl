@@ -6,8 +6,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 global com.atguigu.daijia.model.vo.rules.ProfitsharingRuleResponse profitsharingRuleResponse;
-//支付微信平台费率：0.6%
-//global BigDecimal paymentRate = new BigDecimal(0.006);
 /**
 支付微信平台费用
     平台费率：0.6%

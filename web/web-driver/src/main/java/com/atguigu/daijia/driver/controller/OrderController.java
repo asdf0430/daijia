@@ -4,14 +4,19 @@ import com.atguigu.daijia.common.annotation.LoginAno;
 import com.atguigu.daijia.common.result.Result;
 import com.atguigu.daijia.common.util.AuthContextHolder;
 import com.atguigu.daijia.driver.service.OrderService;
+import com.atguigu.daijia.model.entity.order.OrderInfo;
 import com.atguigu.daijia.model.form.map.CalculateDrivingLineForm;
+import com.atguigu.daijia.model.form.order.OrderFeeForm;
 import com.atguigu.daijia.model.form.order.StartDriveForm;
 import com.atguigu.daijia.model.form.order.UpdateOrderCartForm;
+import com.atguigu.daijia.model.vo.base.PageVo;
 import com.atguigu.daijia.model.vo.map.DrivingLineVo;
 import com.atguigu.daijia.model.vo.order.CurrentOrderInfoVo;
 import com.atguigu.daijia.model.vo.order.NewOrderDataVo;
 import com.atguigu.daijia.model.vo.order.OrderInfoVo;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -98,4 +103,34 @@ public class OrderController {
 		startDriveForm.setDriverId(driverId);
 		return Result.ok(orderService.startDrive(startDriveForm));
 	}
+
+	@Operation(summary = "获取司机订单分页列表")
+	@LoginAno
+	@GetMapping("findDriverOrderPage/{page}/{limit}")
+	public Result<PageVo> findDriverOrderPage(
+			@Parameter(name = "page", description = "当前页码", required = true)
+			@PathVariable Long page,
+
+			@Parameter(name = "limit", description = "每页记录数", required = true)
+			@PathVariable Long limit) {
+		Long driverId = AuthContextHolder.getUserId();
+		PageVo pageVo = orderService.findDriverOrderPage(driverId, page, limit);
+		return Result.ok(pageVo);
+	}
+
+	@Operation(summary = "结束代驾")
+	@LoginAno
+	@GetMapping("endDrive")
+	public Result<Boolean> endDrive(@RequestBody OrderFeeForm orderFeeForm) {
+		return Result.ok(orderService.endDrive(orderFeeForm));
+	}
+
+	@Operation(summary = "司机发送账单信息")
+	@LoginAno
+	@GetMapping("/sendOrderBillInfo/{orderId}")
+	public Result<Boolean> sendOrderBillInfo(@PathVariable Long orderId) {
+		Long driverId = AuthContextHolder.getUserId();
+		return Result.ok(orderService.sendOrderBillInfo(orderId, driverId));
+	}
+
 }
