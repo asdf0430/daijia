@@ -7,4 +7,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface CouponInfoMapper extends BaseMapper<CouponInfo> {
 
+	int updateReceiveCount(Long couponId);
 }

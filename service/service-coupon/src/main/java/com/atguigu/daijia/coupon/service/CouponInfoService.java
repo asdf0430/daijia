@@ -6,4 +6,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface CouponInfoService extends IService<CouponInfo> {
 
 
+	Boolean receive(Long customerId, Long couponId);
 }
