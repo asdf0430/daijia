@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.w3c.dom.CharacterData;
 
 @FeignClient(value = "service-driver")
 public interface DriverInfoFeignClient {
@@ -90,4 +91,11 @@ public interface DriverInfoFeignClient {
 	Result<DriverInfoVo> getDriverInfo(@PathVariable("driverId") Long driverId);
 
 
+	/**
+	 * 获取司机OpenId
+	 * @param driverId
+	 * @return
+	 */
+	@GetMapping("/driver/info/getDriverOpenId/{driverId}")
+	Result<String> getDriverOpenId(@PathVariable("driverId") Long driverId);
 }

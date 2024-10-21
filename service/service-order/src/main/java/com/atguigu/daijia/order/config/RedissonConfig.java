@@ -1,4 +1,4 @@
-package com.atguigu.daijia.order.comfig;
+package com.atguigu.daijia.order.config;
 
 import lombok.Data;
 import org.redisson.Redisson;
